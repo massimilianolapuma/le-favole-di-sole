@@ -1,0 +1,117 @@
+---
+/**
+ * CTA persistente su mobile: una sola azione, piccola, in basso.
+ * Ogni pagina può passare la propria azione (es. Amazon sulle pagine libro).
+ */
+import Icon from './Icon.astro';
+import { link } from '../lib/paths';
+
+export type MobileCta = {
+  label: string;
+  href: string;
+  external?: boolean;
+  track: string;
+  /** 'late': compare solo dopo metà pagina (pagine di lettura, per non coprire il testo). */
+  reveal?: 'always' | 'late';
+};
+
+interface Props {
+  cta: MobileCta;
+}
+
+const { cta } = Astro.props;
+// Le etichette lunghe (es. quella fissata dal brief per la collana) rinunciano all'icona per stare su una riga.
+const long = cta.label.length > 28;
+---
+
+<div class:list={['mobile-bar', { 'is-hidden': cta.reveal === 'late', 'mobile-bar--long': long }]} data-reveal={cta.reveal ?? 'always'}>
+  <a
+    class="btn btn--primary"
+    href={cta.external ? cta.href : link(cta.href)}
+    target={cta.external ? '_blank' : undefined}
+    rel={cta.external ? 'noopener noreferrer' : undefined}
+    data-track={cta.track}
+    data-track-label="mobile-bar"
+  >
+    {!cta.external && !long && <Icon name="cards" size={20} />}
+    {cta.label}
+    {cta.external && <Icon name="external" size={18} />}
+    {cta.external && <span class="visually-hidden">(si apre in una nuova scheda)</span>}
+  </a>
+</div>
+
+<style>
+  .mobile-bar {
+    display: none;
+  }
+
+  @media (max-width: 48rem) {
+    .mobile-bar {
+      display: block;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      padding: 0.6rem var(--gutter) calc(0.6rem + env(safe-area-inset-bottom));
+      background: rgb(255 249 241 / 0.96);
+      border-top: 1px solid var(--line);
+      transition: transform 0.25s ease;
+    }
+
+    .mobile-bar--long .btn {
+      padding-inline: 0.75rem;
+      font-size: 0.98rem;
+      letter-spacing: -0.005em;
+    }
+
+    .mobile-bar .btn {
+      width: 100%;
+      min-height: 2.9rem;
+      padding-block: 0.6rem;
+      box-shadow: none;
+    }
+
+    :global(body:has(.mobile-bar)) {
+      padding-bottom: 4.6rem;
+    }
+
+    /* Nascosta quando il form o la CTA principale sono già visibili */
+    .mobile-bar:global(.is-hidden) {
+      transform: translateY(110%);
+      visibility: hidden;
+      transition: transform 0.25s ease, visibility 0s 0.25s;
+    }
+  }
+</style>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('.mobile-bar');
+  if (bar) {
+    const late = bar.dataset.reveal === 'late';
+    const visible = new Set<Element>();
+    let reached = !late;
+    const update = () => bar.classList.toggle('is-hidden', visible.size > 0 || !reached);
+
+    const targets = document.querySelectorAll('[data-hides-mobile-bar]');
+    if (targets.length && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
+        update();
+      });
+      targets.forEach((t) => io.observe(t));
+    }
+
+    if (late) {
+      const onScroll = () => {
+        const progress = (scrollY + innerHeight) / document.documentElement.scrollHeight;
+        if (progress > 0.6 !== reached) {
+          reached = progress > 0.6;
+          update();
+        }
+      };
+      addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+  }
+</script>

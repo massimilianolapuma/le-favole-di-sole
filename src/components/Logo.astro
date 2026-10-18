@@ -1,0 +1,35 @@
+---
+/** Marchio provvisorio: sole di carta + nome. Sostituibile con un SVG definitivo. */
+import { site } from '../config/site';
+---
+
+<span class="logo">
+  <svg class="logo-sun" width="38" height="38" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+    <g fill="var(--sole)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round">
+      <path d="M20 2.5l3 6.2 6.6-2.4-1.1 6.9 6.9 1.1-4.3 5.6 4.3 5.6-6.9 1.1 1.1 6.9-6.6-2.4-3 6.2-3-6.2-6.6 2.4 1.1-6.9-6.9-1.1 4.3-5.6-4.3-5.6 6.9-1.1-1.1-6.9 6.6 2.4z" />
+    </g>
+    <circle cx="20" cy="20" r="7.2" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6" />
+    <path d="M17 19.2h.01M23 19.2h.01" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" />
+    <path d="M17.2 22.2q2.8 2.2 5.6 0" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" />
+  </svg>
+  <span class="logo-text">{site.brand}</span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .logo-text {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  @media (max-width: 22.5rem) {
+    .logo-text {
+      font-size: 1.12rem;
+    }
+  }
+</style>

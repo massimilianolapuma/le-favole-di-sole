@@ -1,0 +1,87 @@
+---
+import '../styles/global.css';
+import { site } from '../config/site';
+import { absoluteUrl, cleanPath, link } from '../lib/paths';
+import Analytics from '../components/Analytics.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MobileBar, { type MobileCta } from '../components/MobileBar.astro';
+
+interface Props {
+  /** Titolo specifico della pagina (senza brand). Sulla home passare il titolo completo con `fullTitle`. */
+  title: string;
+  fullTitle?: boolean;
+  description: string;
+  /** Dati strutturati aggiuntivi (es. Book). Organization è sempre incluso. */
+  jsonLd?: Record<string, unknown>[];
+  /** CTA mobile persistente. `false` per nasconderla (es. pagina newsletter). */
+  mobileCta?: MobileCta | false;
+  noindex?: boolean;
+  ogType?: 'website' | 'article' | 'book';
+}
+
+const {
+  title,
+  fullTitle = false,
+  description,
+  jsonLd = [],
+  mobileCta = { label: 'Ricevi le carte gratis', href: '/newsletter#modulo', track: 'cta_lead_magnet' },
+  noindex = false,
+  ogType = 'website',
+} = Astro.props;
+
+const pageTitle = fullTitle ? title : `${title} | ${site.brand}`;
+const canonical = absoluteUrl(cleanPath(Astro.url.pathname));
+const robots = noindex || !site.indexable;
+
+const organization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.brand,
+  url: absoluteUrl('/'),
+  logo: absoluteUrl('/favicon.svg'),
+  founder: { '@type': 'Person', name: site.author.name },
+  sameAs: site.social.map((s) => s.url).filter(Boolean),
+};
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {robots && <meta name="robots" content="noindex, follow" />}
+    <link rel="icon" type="image/svg+xml" href={link('/favicon.svg')} />
+    <meta name="theme-color" content="#fff9f1" />
+
+    <meta property="og:site_name" content={site.brand} />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <!-- TODO: aggiungere og:image (1200×630) quando saranno pronte le immagini definitive -->
+
+    <script type="application/ld+json" set:html={JSON.stringify(organization)} />
+    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+
+    <Analytics />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenuto">Vai al contenuto</a>
+    <Header />
+    <main id="contenuto" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    {mobileCta && <MobileBar cta={mobileCta} />}
+    <script>
+      import { initClickTracking } from '../lib/analytics';
+      initClickTracking();
+    </script>
+  </body>
+</html>

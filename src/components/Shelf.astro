@@ -1,0 +1,237 @@
+---
+/**
+ * La collana come scaffale: dieci dorsi in ordine di uscita.
+ * I volumi disponibili sono dorsi pieni e link alla pagina libro; quelli in arrivo
+ * sono dorsi più sottili, velati con i pigmenti del brand, non cliccabili.
+ * Lo scaffale occupa tutta la larghezza del suo contenitore.
+ */
+import { bookBySlug, bookPath, series, site } from '../config/site';
+import { link } from '../lib/paths';
+
+interface Props {
+  /** Mostra il link di iscrizione sotto i volumi in arrivo. */
+  notify?: boolean;
+  notifyLabel?: string;
+}
+
+const { notify = true, notifyLabel = 'Ricevi per prima le prossime emozioni' } = Astro.props;
+const available = series.filter((s) => s.status === 'disponibile').length;
+const upcoming = series.filter((s) => s.status === 'in-arrivo');
+const first = upcoming[0]?.volume;
+const last = upcoming.at(-1)?.volume;
+// Velature in rotazione: nessun significato per volume, solo la promessa di nuovi colori.
+const tints = ['pesca', 'sole', 'salvia', 'cipria', 'polvere'];
+---
+
+<div class="shelf-wrap" style={`--available: ${available}; --upcoming: ${upcoming.length}`} data-hides-mobile-bar>
+  <ol class="shelf" role="list" aria-label={`I ${series.length} volumi della collana ${site.seriesName}`}>
+    {series.map((slot, i) => {
+      if (slot.status === 'disponibile') {
+        const book = bookBySlug(slot.slug)!;
+        return (
+          <li class="slot">
+            <a
+              class:list={['spine', `spine--${book.tone}`]}
+              href={link(bookPath(book.slug))}
+              aria-label={`${book.title}, volume ${slot.volume}, disponibile`}
+              data-track="cta_book_page"
+              data-track-label={`shelf-${book.slug}`}
+            >
+              <span class="spine-title">{book.title}</span>
+              <span class="spine-num" aria-hidden="true">{slot.volume}</span>
+            </a>
+          </li>
+        );
+      }
+      return (
+        <li class="slot">
+          <span class="spine spine--soon" style={`--tint: var(--${tints[i % tints.length]})`} aria-hidden="true">
+            <span class="spine-title">{slot.emotion ?? 'in arrivo'}</span>
+            <span class="spine-num">{slot.volume}</span>
+          </span>
+          <span class="visually-hidden">Volume {slot.volume}{slot.emotion ? `, ${slot.emotion}` : ''}, in arrivo</span>
+        </li>
+      );
+    })}
+  </ol>
+  {upcoming.length > 0 && (
+    <p class="shelf-caption">
+      <span>Volumi {first}–{last}: in arrivo, uno alla volta.</span>
+      {notify && (
+        <a class="text-link" href={link('/newsletter#modulo')} data-track="cta_lead_magnet" data-track-label="shelf-avvisami">
+          {notifyLabel}
+        </a>
+      )}
+    </p>
+  )}
+</div>
+
+<style>
+  .shelf-wrap {
+    display: grid;
+    grid-template-columns:
+      repeat(var(--available), minmax(3rem, 1.6fr))
+      repeat(var(--upcoming), minmax(1.5rem, 1fr));
+  }
+
+  .shelf {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: end;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 14px solid var(--wood);
+    box-shadow: 0 8px 0 0 var(--wood-deep);
+  }
+
+  .slot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-inline: 2px;
+  }
+
+  .spine {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    height: 17rem;
+    padding: 1.4rem 0.3rem 0.7rem;
+    border: 2px solid var(--ink);
+    border-bottom: 0;
+    border-radius: 0.5rem 0.5rem 0 0;
+    background-image: var(--paper-grain);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .spine--amore {
+    background-color: var(--cipria);
+  }
+
+  .spine--paura {
+    background-color: var(--polvere);
+    height: 16.4rem;
+  }
+
+  a.spine {
+    transition: transform 0.2s ease;
+  }
+
+  a.spine:hover,
+  a.spine:focus-visible {
+    transform: translateY(-0.6rem);
+  }
+
+  a.spine:focus-visible {
+    outline-offset: 2px;
+  }
+
+  /*
+   * Titolo verticale dal basso verso l'alto. `sideways-lr` non richiede rotazioni,
+   * così il box del testo coincide con quello visibile in ogni browser.
+   * Il titolo è centrato nello spazio sopra il numero e non può uscire dal dorso.
+   */
+  .spine-title {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: sideways-lr;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  @supports not (writing-mode: sideways-lr) {
+    .spine-title {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+  }
+
+  .spine-num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--sole);
+    border: 1.5px solid currentColor;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .spine--soon {
+    height: 12.5rem;
+    padding: 0.9rem 0 0.6rem;
+    border-width: 1.5px;
+    border-style: dashed;
+    border-color: var(--line-strong);
+    border-radius: 0.35rem 0.35rem 0 0;
+    background-color: color-mix(in srgb, var(--tint) 32%, var(--paper));
+    color: var(--ink-soft);
+  }
+
+  .spine--soon .spine-title {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .spine--soon .spine-num {
+    width: auto;
+    height: auto;
+    border: 0;
+    background: none;
+    font-size: 0.85rem;
+    font-variant-numeric: lining-nums;
+  }
+
+  .shelf-caption {
+    grid-column: calc(var(--available) + 1) / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 1rem;
+    margin: 1.1rem 0 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 40rem) {
+    .spine {
+      height: 13.5rem;
+      padding-top: 1.1rem;
+    }
+    .spine--paura {
+      height: 13rem;
+    }
+    .spine--soon {
+      height: 10rem;
+      padding-top: 0.7rem;
+    }
+    .spine-title {
+      font-size: 1rem;
+    }
+    .spine--soon .spine-title {
+      font-size: 0.72rem;
+    }
+    .shelf-caption {
+      grid-column: 1 / -1;
+      font-size: 0.9rem;
+    }
+  }
+</style>

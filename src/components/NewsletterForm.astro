@@ -1,0 +1,252 @@
+---
+/**
+ * Form lead magnet "Le carte delle emozioni di Sole".
+ * In preview valida lato client e mostra la conferma senza inviare dati (vedi src/lib/newsletter.ts).
+ */
+import { site } from '../config/site';
+import { link } from '../lib/paths';
+
+interface Props {
+  /** Identifica il punto di iscrizione (es. 'home', 'newsletter', 'articolo-buio'). */
+  source: string;
+  /** id univoco nella pagina, usato per collegare etichette e messaggi. */
+  id?: string;
+  submitLabel?: string;
+}
+
+const { source, id = 'nl', submitLabel = 'Ricevi le carte gratis' } = Astro.props;
+---
+
+<div class="nl" data-newsletter>
+  <form class="nl-form" novalidate data-source={source}>
+    <div class="field">
+      <label for={`${id}-name`}>Nome <span class="opt">(facoltativo)</span></label>
+      <input id={`${id}-name`} name="name" type="text" autocomplete="given-name" maxlength="60" />
+    </div>
+
+    <div class="field">
+      <label for={`${id}-email`}>Email</label>
+      <input
+        id={`${id}-email`}
+        name="email"
+        type="email"
+        inputmode="email"
+        autocomplete="email"
+        required
+        aria-describedby={`${id}-email-error`}
+      />
+      <p class="error" id={`${id}-email-error`} data-error="email" hidden></p>
+    </div>
+
+    <div class="field field--check">
+      <input id={`${id}-consent`} name="consent" type="checkbox" required aria-describedby={`${id}-consent-error`} />
+      <label for={`${id}-consent`}>
+        Voglio ricevere le carte e le email di {site.brand}. Ho letto
+        l'<a href={link(site.legal.privacyUrl)}>informativa privacy</a>. Posso cancellarmi quando voglio.
+      </label>
+      <p class="error" id={`${id}-consent-error`} data-error="consent" hidden></p>
+    </div>
+
+    <button class="btn btn--primary" type="submit" data-track="newsletter_submit" data-track-label={source}>
+      <span class="label">{submitLabel}</span>
+    </button>
+    <p class="error form-error" data-error="form" role="alert" hidden></p>
+    {site.newsletter.provider === 'preview' && (
+      <p class="small muted preview-note">Anteprima del sito: il modulo verifica i dati ma non li invia.</p>
+    )}
+  </form>
+
+  <div class="nl-success" role="status" hidden>
+    <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="10" fill="var(--salvia)" />
+      <path d="m7.5 12.5 3 3 6-6.5" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <p class="success-title" tabindex="-1">{site.leadMagnet.successMessage}</p>
+    <p class="muted">
+      Se l'email non arriva entro qualche minuto, guarda anche nelle cartelle Promozioni e Spam.
+      Nel frattempo puoi <a href={link('/risorse')}>leggere le risorse per genitori</a>.
+    </p>
+  </div>
+</div>
+
+<script>
+  import { isValidEmail, subscribe } from '../lib/newsletter';
+  import { track } from '../lib/analytics';
+
+  document.querySelectorAll<HTMLElement>('[data-newsletter]').forEach((root) => {
+    const form = root.querySelector<HTMLFormElement>('form')!;
+    const success = root.querySelector<HTMLElement>('.nl-success')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const email = form.elements.namedItem('email') as HTMLInputElement;
+    const consent = form.elements.namedItem('consent') as HTMLInputElement;
+    const name = form.elements.namedItem('name') as HTMLInputElement;
+
+    const showError = (key: string, input: HTMLInputElement | null, message: string) => {
+      const el = form.querySelector<HTMLElement>(`[data-error="${key}"]`)!;
+      el.textContent = message;
+      el.hidden = !message;
+      if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    };
+
+    const validate = () => {
+      const value = email.value.trim();
+      const emailMsg = !value
+        ? 'Inserisci la tua email per ricevere le carte.'
+        : !isValidEmail(value)
+          ? 'Controlla l\'email: sembra incompleta (esempio: nome@dominio.it).'
+          : '';
+      const consentMsg = consent.checked ? '' : 'Per inviarti le carte serve il tuo consenso.';
+      showError('email', email, emailMsg);
+      showError('consent', consent, consentMsg);
+      if (emailMsg) email.focus();
+      else if (consentMsg) consent.focus();
+      return !emailMsg && !consentMsg;
+    };
+
+    email.addEventListener('blur', () => {
+      if (email.getAttribute('aria-invalid') === 'true' && isValidEmail(email.value)) showError('email', email, '');
+    });
+    consent.addEventListener('change', () => {
+      if (consent.checked) showError('consent', consent, '');
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError('form', null, '');
+      if (!validate()) return;
+
+      button.disabled = true;
+      button.querySelector('.label')!.textContent = 'Invio in corso…';
+      const result = await subscribe({
+        email: email.value.trim(),
+        name: name.value.trim() || undefined,
+        consent: consent.checked,
+        source: form.dataset.source ?? 'sconosciuta',
+      });
+
+      if (result.ok) {
+        track('newsletter_success', { source: form.dataset.source ?? '' });
+        form.hidden = true;
+        success.hidden = false;
+        success.querySelector<HTMLElement>('.success-title')!.focus();
+      } else {
+        button.disabled = false;
+        button.querySelector('.label')!.textContent = 'Riprova';
+        showError('form', null, result.error);
+      }
+    });
+  });
+</script>
+
+<style>
+  .nl-form {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  label {
+    font-weight: 700;
+  }
+
+  .opt {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  input[type='text'],
+  input[type='email'] {
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.7rem 1rem;
+    font: inherit;
+    color: var(--ink);
+    background: #fff;
+    border: 2px solid #9a97a6;
+    border-radius: 0.9rem;
+  }
+
+  input[type='text']:focus-visible,
+  input[type='email']:focus-visible {
+    border-color: var(--ink);
+    outline-offset: 2px;
+  }
+
+  input[aria-invalid='true'] {
+    border-color: var(--cipria-deep);
+  }
+
+  .field--check {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    column-gap: 0.75rem;
+  }
+
+  .field--check label {
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .field--check .error {
+    grid-column: 1 / -1;
+  }
+
+  input[type='checkbox'] {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0.1rem 0 0;
+    accent-color: var(--ink);
+  }
+
+  .error {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #8f2f37;
+  }
+
+  .error::before {
+    content: '! ';
+  }
+
+  .nl-form .btn {
+    justify-self: start;
+  }
+
+  .nl-form .btn:disabled {
+    opacity: 0.7;
+    cursor: progress;
+  }
+
+  .preview-note {
+    margin: 0;
+  }
+
+  .nl-success {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: start;
+  }
+
+  .success-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: 1.2;
+  }
+
+  .success-title:focus {
+    outline: none;
+  }
+
+  @media (max-width: 34rem) {
+    .nl-form .btn {
+      justify-self: stretch;
+    }
+  }
+</style>

@@ -1,0 +1,69 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { link } from '../lib/paths';
+
+interface Props {
+  article: CollectionEntry<'articoli'>;
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { article, headingLevel = 'h3' } = Astro.props;
+const { title, excerpt, readingMinutes, tone } = article.data;
+const Heading = headingLevel;
+---
+
+<article class="article-card" style={`--tone: var(--${tone})`}>
+  <Heading class="title">
+    <a href={link(`/risorse/${article.id}`)} data-track="article_open" data-track-label={article.id}>{title}</a>
+  </Heading>
+  <p class="muted">{excerpt}</p>
+  <p class="small read">Lettura di {readingMinutes} minuti</p>
+</article>
+
+<style>
+  .article-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.5rem 1.25rem;
+    border-radius: var(--radius-soft);
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-top: 0.5rem solid var(--tone);
+  }
+
+
+  .title {
+    font-size: 1.35rem;
+  }
+
+  .title a {
+    text-decoration: none;
+  }
+
+  .title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .article-card:has(a:hover) .title a {
+    text-decoration: underline;
+    text-decoration-color: var(--sole-deep);
+  }
+
+  .article-card:has(a:focus-visible) {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .title a:focus-visible {
+    outline: none;
+  }
+
+  .read {
+    margin: auto 0 0;
+    font-weight: 700;
+  }
+</style>

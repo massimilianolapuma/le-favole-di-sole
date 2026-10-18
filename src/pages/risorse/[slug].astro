@@ -1,0 +1,172 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BookCover from '../../components/BookCover.astro';
+import Icon from '../../components/Icon.astro';
+import { bookBySlug, bookPath, site } from '../../config/site';
+import { absoluteUrl, link } from '../../lib/paths';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articoli');
+  return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+}
+
+const { article } = Astro.props;
+const { Content } = await render(article);
+const { title, description, readingMinutes, relatedBook, tone } = article.data;
+const book = relatedBook ? bookBySlug(relatedBook) : undefined;
+
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  inLanguage: 'it',
+  author: { '@type': 'Person', name: site.author.name },
+  publisher: { '@type': 'Organization', name: site.brand },
+  mainEntityOfPage: absoluteUrl(`/risorse/${article.id}`),
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogType="article"
+  jsonLd={[articleJsonLd]}
+  mobileCta={{ label: 'Ricevi le carte gratis', href: '/newsletter#modulo', track: 'cta_lead_magnet', reveal: 'late' }}
+>
+  <article>
+    <header class="art-head" style={`--tone: var(--${tone})`}>
+      <div class="wrap">
+        <nav class="crumbs small" aria-label="Percorso">
+          <a href={link('/risorse')}>Risorse per genitori</a>
+        </nav>
+        <h1>{title}</h1>
+        <p class="small muted">Lettura di {readingMinutes} minuti · di {site.author.shortName}</p>
+      </div>
+    </header>
+
+    <div class="wrap body">
+      <div class="prose">
+        <Content />
+      </div>
+
+      <aside class="next" aria-labelledby="carte-cta" data-hides-mobile-bar>
+        <span class="next-icon"><Icon name="cards" size={28} /></span>
+        <div>
+          <h2 id="carte-cta">Ti è stato utile? Prova le carte delle emozioni</h2>
+          <p class="muted">
+            Dieci domande e attività da fare insieme, gratis in un PDF da stampare. Arrivano via email.
+          </p>
+          <a class="btn btn--primary" href={link('/newsletter#modulo')} data-track="cta_lead_magnet" data-track-label={`articolo-${article.id}`}>
+            Ricevi le carte gratis
+          </a>
+          {book && (
+            <div class="book-line small">
+              <div class="mini-cover" aria-hidden="true"><BookCover book={book} /></div>
+              <p>
+                Se vuoi una storia su questo tema, c'è{' '}
+                <a class="text-link" href={link(bookPath(book.slug))} data-track="cta_book_page" data-track-label={`articolo-${article.id}`}>{book.title}</a>.
+              </p>
+            </div>
+          )}
+        </div>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .art-head {
+    padding-block: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 2.5rem);
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--tone) 45%, transparent), transparent);
+  }
+
+  .art-head h1 {
+    font-size: var(--step-4);
+    max-width: 20ch;
+  }
+
+  .crumbs {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .crumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .body {
+    padding-block: 1rem clamp(3.5rem, 7vw, 6rem);
+  }
+
+  .prose {
+    font-size: 1.15rem;
+  }
+
+  .next {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.25rem;
+    max-width: var(--measure);
+    margin-top: 3rem;
+    padding: 1.75rem;
+    border-radius: var(--radius-blob);
+    background: var(--paper-deep);
+    border: 2px solid var(--ink);
+  }
+
+  .next h2 {
+    font-size: var(--step-1);
+  }
+
+  .next-icon {
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 50%;
+    background: var(--sole);
+    border: 2px solid var(--ink);
+  }
+
+  .book-line {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 1.5rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1.5px dashed var(--line);
+  }
+
+  .mini-cover {
+    flex: none;
+    width: 3.2rem;
+  }
+
+  .book-line p {
+    margin: 0;
+  }
+
+  .book-line .text-link {
+    padding-block: 0.8rem;
+  }
+
+  .mini-cover :global(.cover-series),
+  .mini-cover :global(.cover-note),
+  .mini-cover :global(.cover-title) {
+    display: none;
+  }
+
+  @media (max-width: 34rem) {
+    .next {
+      grid-template-columns: 1fr;
+      padding: 1.4rem;
+    }
+    .next .btn {
+      width: 100%;
+    }
+  }
+</style>

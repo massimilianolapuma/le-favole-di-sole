@@ -1,0 +1,492 @@
+---
+/**
+ * Pagina libro riutilizzabile: tutta la struttura è guidata dai dati in `books` (src/config/site.ts).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BookCover from './BookCover.astro';
+import Placeholder from './Placeholder.astro';
+import Shelf from './Shelf.astro';
+import Icon from './Icon.astro';
+import { absoluteUrl, link } from '../lib/paths';
+import { bookBySlug, bookPath, site, type Book } from '../config/site';
+
+interface Props {
+  book: Book;
+}
+
+const { book } = Astro.props;
+const next = bookBySlug(book.crossLink.slug)!;
+const canonical = absoluteUrl(bookPath(book.slug));
+const spreadTones = ['pesca', book.tone === 'amore' ? 'cipria' : 'polvere', 'salvia'] as const;
+
+const bookJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Book',
+  name: book.title,
+  url: canonical,
+  sameAs: book.amazonUrl,
+  inLanguage: 'it',
+  description: book.metaDescription,
+  author: { '@type': 'Person', name: site.author.name },
+  isPartOf: { '@type': 'BookSeries', name: site.seriesName },
+  position: book.volume,
+  audience: { '@type': 'PeopleAudience', suggestedMinAge: 3, suggestedMaxAge: 9 },
+  ...(book.coverImage ? { image: absoluteUrl(book.coverImage) } : {}),
+};
+
+const amazonLabel = `Acquista ${book.title} su Amazon`;
+const reviews = book.reviews?.verified ? book.reviews : null;
+const facts = [
+  'Fumetto + favola + attività',
+  book.facts.format,
+  book.facts.pages ? `${book.facts.pages} pagine` : null,
+  'Prezzo su Amazon.it',
+].filter(Boolean) as string[];
+---
+
+<BaseLayout
+  title={book.metaTitle}
+  fullTitle
+  description={book.metaDescription}
+  ogType="book"
+  jsonLd={[bookJsonLd]}
+  mobileCta={{ label: 'Acquista su Amazon', href: book.amazonUrl, external: true, track: 'cta_amazon' }}
+>
+  <section class:list={['book-hero', `book-hero--${book.tone}`]}>
+    <div class="wrap hero-grid">
+      <p class="label">Volume {book.volume} · {site.seriesName} · {book.ageRange}</p>
+
+      <div class="hero-title">
+        <h1>{book.title}</h1>
+        <ul class="facts">
+          {facts.map((f) => <li>{f}</li>)}
+        </ul>
+      </div>
+
+      <p class="lede">{book.description[0]}</p>
+
+      <div class="hero-cover">
+        <BookCover book={book} eager />
+      </div>
+
+      <div class="hero-actions" data-hides-mobile-bar>
+        {reviews && (
+          <p class="reviews">
+            <span class="stars" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, i) => (
+                <svg viewBox="0 0 24 24" width="20" height="20" class:list={{ off: i >= Math.round(reviews.average) }}>
+                  <path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" />
+                </svg>
+              ))}
+            </span>
+            <strong>Media {reviews.average.toLocaleString('it-IT')} su 5 · {reviews.count} recensioni su Amazon.it</strong>
+            <span class="small muted">Aggiornato a {reviews.checkedAt}</span>
+          </p>
+        )}
+        <a
+          class="btn btn--primary btn--amazon"
+          href={book.amazonUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-track="cta_amazon"
+          data-track-label={`${book.slug}-hero`}
+        >
+          {amazonLabel}
+          <Icon name="external" size={18} />
+          <span class="visually-hidden">(si apre in una nuova scheda)</span>
+        </a>
+        <p class="small muted note">Si apre la scheda del libro su Amazon.it. Il sito non gestisce pagamenti.</p>
+        <a class="text-link" href={link(bookPath(next.slug))} data-track="cta_book_page" data-track-label={`${book.slug}-cross`}>
+          {book.crossLink.label}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="dentro-title">
+    <div class="wrap inside-grid">
+      <div class="measure">
+        <h2 id="dentro-title">Dentro il libro</h2>
+        {book.description.slice(1).map((p) => <p class="muted">{p}</p>)}
+      </div>
+      <ul class="inside">
+        {book.inside.map((item) => (
+          <li>
+            <h3>{item.title}</h3>
+            <p class="muted">{item.text}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="tavole-title">
+    <div class="wrap">
+      <h2 id="tavole-title" class="section-head">Uno sguardo alle pagine</h2>
+      <div class="spreads">
+        {book.spreads.map((caption, i) => (
+          <figure>
+            <Placeholder
+              label={`Tavola interna da sostituire — ${book.title}`}
+              alt={`${book.title}: ${caption.toLowerCase()}`}
+              src={book.spreadImages[i]}
+              tone={spreadTones[i]}
+              ratio="4 / 3"
+            />
+            <figcaption class="small muted">{caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="domanda-title">
+    <div class="wrap">
+      <div class="question">
+        <h2 id="domanda-title" class="question-label">Una domanda da provare insieme</h2>
+        <p class="question-text">«{book.question}»</p>
+        <p class="muted">{book.questionHint}</p>
+      </div>
+      <div class="more-cards" data-hides-mobile-bar>
+        <p>
+          <strong>Vuoi altre domande come questa?</strong>{' '}
+          Le carte delle emozioni di Sole ne raccolgono dieci, ognuna con un'attività da fare insieme. Gratis, via email.
+        </p>
+        <a class="btn btn--secondary" href={link('/newsletter#modulo')} data-track="cta_lead_magnet" data-track-label={`${book.slug}-domanda`}>
+          Ricevi le carte gratis
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {book.testimonials.length > 0 && (
+    <section class="section" aria-labelledby="voci-title">
+      <div class="wrap">
+        <h2 id="voci-title">Cosa dicono le famiglie</h2>
+        <ul class="testimonials">
+          {book.testimonials.map((t) => (
+            <li><blockquote><p>«{t.quote}»</p><footer>{t.author}</footer></blockquote></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="section section--tint" aria-labelledby="collana-title">
+    <div class="wrap">
+      <div class="closing">
+        <div>
+          <h2 id="collana-title">Fa parte della collana {site.seriesName}</h2>
+          <p class="muted">Dieci favole, un'emozione per volume. {book.title} è il volume {book.volume}.</p>
+          <div class="btn-row btn-row--stack">
+            <a class="btn btn--primary" href={book.amazonUrl} target="_blank" rel="noopener noreferrer" data-track="cta_amazon" data-track-label={`${book.slug}-closing`}>
+              {amazonLabel}
+              <Icon name="external" size={18} />
+              <span class="visually-hidden">(si apre in una nuova scheda)</span>
+            </a>
+            <a class="btn btn--secondary" href={link(bookPath(next.slug))} data-track="cta_book_page" data-track-label={`${book.slug}-closing-cross`}>
+              {book.crossLink.label}
+            </a>
+          </div>
+        </div>
+        <Shelf notify={false} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .book-hero {
+    padding-block: clamp(2rem, 5vw, 4.5rem);
+    background-image: var(--paper-grain);
+  }
+
+  .book-hero--amore {
+    background-color: rgb(243 207 201 / 0.45);
+  }
+
+  .book-hero--paura {
+    background-color: rgb(179 203 224 / 0.45);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(14rem, 26rem) 1fr;
+    grid-template-areas:
+      'cover .'
+      'cover label'
+      'cover title'
+      'cover lede'
+      'cover actions'
+      'cover .';
+    grid-template-rows: 1fr auto auto auto auto 1fr;
+    column-gap: clamp(2rem, 6vw, 5rem);
+  }
+
+  .hero-title {
+    grid-area: title;
+  }
+
+  .hero-grid > .lede {
+    grid-area: lede;
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin: -0.2rem 0 1.1rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+
+  .facts li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .facts li + li::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-left: -0.85rem;
+    margin-right: 0.45rem;
+    border-radius: 50%;
+    background: var(--sole-deep);
+  }
+
+  .hero-cover {
+    grid-area: cover;
+    align-self: center;
+    transform: rotate(-2deg);
+  }
+
+  .hero-actions {
+    grid-area: actions;
+    align-self: start;
+    display: grid;
+    justify-items: start;
+    gap: 0.9rem;
+  }
+
+  .label {
+    grid-area: label;
+    justify-self: start;
+    align-self: end;
+    display: inline-block;
+    margin-bottom: 1rem;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .book-hero h1 {
+    margin-bottom: 0.4em;
+  }
+
+  .lede {
+    color: var(--ink);
+    max-width: 36rem;
+  }
+
+  .reviews {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0;
+  }
+
+  .stars {
+    display: flex;
+    gap: 0.15rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .stars svg {
+    fill: var(--sole);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+  }
+
+  .stars svg.off {
+    fill: var(--paper);
+  }
+
+  .more-cards {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem 2rem;
+    max-width: 46rem;
+    margin: clamp(2rem, 5vw, 3rem) auto 0;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-blob);
+    background: var(--paper-deep);
+  }
+
+  .more-cards p {
+    flex: 1 1 22rem;
+    margin: 0;
+  }
+
+  .note {
+    margin: -0.4rem 0 0;
+  }
+
+  /* Dentro il libro */
+  .inside-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+
+  .inside {
+    display: grid;
+    gap: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .inside li {
+    padding: 1.1rem 0 1.1rem 2.75rem;
+    border-bottom: 1.5px dashed var(--line);
+    background: no-repeat left 1.35rem / 1.6rem
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23f5c443' stroke='%232e3550' stroke-width='1.6'/%3E%3Cpath d='m7.5 12.5 3 3 6-6.5' fill='none' stroke='%232e3550' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  .inside li:first-child {
+    padding-top: 0;
+    background-position: left 0.2rem;
+  }
+
+  .inside h3 {
+    margin-bottom: 0.2rem;
+  }
+
+  .inside p {
+    margin: 0;
+  }
+
+  /* Tavole */
+  .spreads {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .spreads figure {
+    margin: 0;
+  }
+
+  .spreads figcaption {
+    margin-top: 0.6rem;
+  }
+
+  /* Domanda */
+  .question {
+    max-width: 46rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .question-label {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  .question-text {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  /* Chiusura */
+  .closing {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: end;
+  }
+
+  .testimonials {
+    list-style: none;
+    padding: 0;
+  }
+
+  @media (max-width: 52rem) {
+    .hero-grid {
+      grid-template-columns: 6.5rem 1fr;
+      grid-template-areas:
+        'label label'
+        'cover title'
+        'lede lede'
+        'actions actions';
+      grid-template-rows: auto;
+      column-gap: 1.1rem;
+      row-gap: 0.25rem;
+      align-items: center;
+    }
+
+    .hero-cover {
+      transform: rotate(-3deg);
+    }
+
+    /* Miniatura: restano solo motivo e titolo, la nota "provvisoria" è nel testo alternativo */
+    .hero-cover :global(.cover-series),
+    .hero-cover :global(.cover-note) {
+      display: none;
+    }
+
+    .hero-title h1 {
+      font-size: clamp(1.7rem, 7vw, 2.2rem);
+      margin-bottom: 0.3em;
+    }
+
+    .facts {
+      margin: 0;
+      font-size: 0.85rem;
+      flex-direction: column;
+    }
+
+    .facts li + li::before {
+      display: none;
+    }
+
+    .hero-grid > .lede {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .inside-grid,
+    .closing {
+      grid-template-columns: 1fr;
+    }
+
+    .spreads {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .hero-actions {
+      justify-items: stretch;
+    }
+    .hero-actions .text-link {
+      justify-self: start;
+    }
+    .label {
+      font-size: 0.85rem;
+    }
+  }
+</style>

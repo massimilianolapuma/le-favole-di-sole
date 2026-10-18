@@ -1,0 +1,25 @@
+{
+  "name": "le-favole-di-sole",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "node scripts/check-links.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/atkinson-hyperlegible-next": "5.2.6",
+    "@fontsource/young-serif": "5.2.6",
+    "astro": "7.3.5"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

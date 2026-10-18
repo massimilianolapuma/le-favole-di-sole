@@ -1,0 +1,62 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+
+const articles = (await getCollection('articoli')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout
+  title="Risorse per genitori — idee per parlare di emozioni con i bambini"
+  description="Piccoli strumenti per grandi emozioni: articoli brevi e concreti per genitori, nonni ed educatori che vogliono parlare di emozioni con i bambini dai 3 ai 9 anni."
+>
+  <section class="intro">
+    <div class="wrap measure-wrap">
+      <h1>Piccoli strumenti per grandi emozioni</h1>
+      <p class="lede">
+        Idee brevi da leggere in pochi minuti e da provare la sera stessa. Per genitori, nonni, educatori e
+        insegnanti, anche senza un libro tra le mani.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section--tint list" aria-label="Articoli">
+    <div class="wrap">
+      <div class="articles">
+        {articles.map((a) => <ArticleCard article={a} headingLevel="h2" />)}
+      </div>
+      <p class="muted small more">Nuove risorse arrivano con la newsletter, insieme alle prossime storie.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-block: clamp(2.5rem, 6vw, 5rem) clamp(2rem, 4vw, 3rem);
+  }
+
+  .measure-wrap > * {
+    max-width: 40rem;
+  }
+
+  .list {
+    padding-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .articles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .more {
+    margin: 2rem 0 0;
+  }
+
+  @media (max-width: 60rem) {
+    .articles {
+      grid-template-columns: 1fr;
+      max-width: 40rem;
+    }
+  }
+</style>

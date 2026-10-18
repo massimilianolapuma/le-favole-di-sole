@@ -1,0 +1,12 @@
+---
+import BookPage from '../../components/BookPage.astro';
+import { books } from '../../config/site';
+
+export function getStaticPaths() {
+  return books.map((book) => ({ params: { slug: book.slug }, props: { book } }));
+}
+
+const { book } = Astro.props;
+---
+
+<BookPage book={book} />

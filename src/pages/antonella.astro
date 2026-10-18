@@ -1,0 +1,127 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { site } from '../config/site';
+import { link } from '../lib/paths';
+---
+
+<BaseLayout
+  title={`Chi è ${site.author.shortName} — l'autrice delle Favole di Sole`}
+  description={`${site.author.name}, mamma e autrice: come sono nate Sole e la collana Le Emozioni di Sole, tra le storie della nonna e le sere con Maria Sole.`}
+>
+  <section class="intro">
+    <div class="wrap intro-grid">
+      <div>
+        <h1>Chi è {site.author.shortName}</h1>
+        <p class="lede">
+          Mamma e autrice. Scrive favole illustrate per bambini perché crede che una storia letta insieme sia uno
+          dei modi più semplici per dire: quello che provi conta.
+        </p>
+      </div>
+      <Placeholder
+        class="portrait"
+        label="Foto dell'autrice da sostituire"
+        alt={`Ritratto di ${site.author.name}`}
+        src={site.author.photo}
+        tone="cipria"
+        ratio="4 / 5"
+        eager
+      />
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-label="La storia del progetto">
+    <div class="wrap story">
+      <div class="chapter">
+        <h2>Tutto è cominciato con Maria Sole</h2>
+        <p>
+          Quando è nata Maria Sole, {site.author.shortName} ha ricominciato a raccontare storie. Prima per farla
+          addormentare, poi per rispondere alle sue domande, poi per accompagnarla nei momenti in cui un'emozione
+          sembrava troppo grande da spiegare.
+        </p>
+        <p>Il personaggio di Sole è nato così: dalla voglia di avere una storia giusta al momento giusto.</p>
+      </div>
+
+      <div class="chapter">
+        <h2>Le storie della nonna</h2>
+        <p>
+          Prima ancora, c'erano le storie della nonna. Racconti semplici, pieni di immagini, detti con la calma di
+          chi ha tempo per ascoltare. Da lì vengono il tono gentile delle Favole di Sole e l'idea che una storia
+          possa far sentire al sicuro.
+        </p>
+      </div>
+
+      <div class="chapter">
+        <h2>Perché scrivere di emozioni</h2>
+        <p>
+          I bambini provano emozioni grandi molto prima di avere le parole per dirle. Una favola dà loro un
+          personaggio in cui riconoscersi e agli adulti un modo per cominciare la conversazione, senza fretta e
+          senza giudizio.
+        </p>
+        <p>
+          Per questo ogni volume della collana {site.seriesName} è dedicato a un'emozione e si chiude con piccole
+          attività da fare insieme. Non per insegnare cosa provare, ma per fare spazio a ciò che si prova.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="next-title">
+    <div class="wrap">
+      <div class="next">
+        <h2 id="next-title">Comincia da una storia</h2>
+        <p class="muted">Scopri i primi due volumi, o ricevi gratis le carte delle emozioni da usare a casa.</p>
+        <div class="btn-row btn-row--stack" data-hides-mobile-bar>
+          <a class="btn btn--primary" href={link('/collana')} data-track="cta_collection" data-track-label="antonella">Scopri la collana</a>
+          <a class="btn btn--secondary" href={link('/newsletter#modulo')} data-track="cta_lead_magnet" data-track-label="antonella">Ricevi le carte gratis</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-block: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+  }
+
+  .intro-grid :global(.portrait) {
+    max-width: 22rem;
+    justify-self: end;
+  }
+
+  .story {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 3.5rem);
+    max-width: 44rem;
+  }
+
+  .chapter h2 {
+    font-size: var(--step-2);
+  }
+
+  .chapter p {
+    font-size: 1.15rem;
+  }
+
+  .next {
+    max-width: 40rem;
+  }
+
+  @media (max-width: 48rem) {
+    .intro-grid {
+      grid-template-columns: 1fr;
+    }
+    .intro-grid :global(.portrait) {
+      justify-self: start;
+      max-width: 15rem;
+    }
+  }
+</style>

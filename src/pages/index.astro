@@ -1,0 +1,487 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BookCover from '../components/BookCover.astro';
+import BookCard from '../components/BookCard.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import LeadMagnet from '../components/LeadMagnet.astro';
+import Placeholder from '../components/Placeholder.astro';
+import Icon from '../components/Icon.astro';
+import { books, bookPath, site } from '../config/site';
+import { emotionCards, emotions } from '../data/content';
+import { link } from '../lib/paths';
+
+const articles = (await getCollection('articoli')).sort((a, b) => a.data.order - b.data.order).slice(0, 3);
+const [amore, paura] = books;
+
+const steps = [
+  { icon: 'book', title: 'Leggere insieme', text: "Dieci minuti, una favola o un fumetto, il bambino vicino. È il momento in cui ci si ferma." },
+  { icon: 'chat', title: 'Nominare ciò che si prova', text: 'Le emozioni di Sole diventano parole da usare anche per le proprie: «anche io, a volte».' },
+  { icon: 'pencil', title: 'Fare una piccola attività', text: 'Un disegno, una domanda, un gioco breve alla fine del libro per continuare la conversazione.' },
+] as const;
+---
+
+<BaseLayout
+  title={`${site.brand} — favole illustrate sulle emozioni per bambini 3–9 anni`}
+  fullTitle
+  description={site.defaultDescription}
+  mobileCta={{ label: 'Ricevi le carte gratis', href: '#carte', track: 'cta_lead_magnet' }}
+>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>{site.tagline}</h1>
+        <p class="lede">
+          Libri illustrati per bambini dai 3 ai 9 anni: un fumetto, una favola e piccole attività per parlare
+          insieme di ciò che si prova.
+        </p>
+        <div class="btn-row btn-row--stack" data-hides-mobile-bar>
+          <a class="btn btn--primary" href={link('/collana')} data-track="cta_collection" data-track-label="hero">Scopri la collana</a>
+          <a class="btn btn--secondary" href="#carte" data-track="cta_lead_magnet" data-track-label="hero">
+            <Icon name="cards" size={20} />Scarica le carte delle emozioni
+          </a>
+        </div>
+        <ul class="trust">
+          <li><strong>3–9 anni</strong>, da leggere con un adulto</li>
+          <li><strong>Fumetto, favola e attività</strong> in ogni volume</li>
+          <li>Scritti da <strong>{site.author.shortName}</strong>, mamma e autrice</li>
+        </ul>
+      </div>
+
+      <div class="hero-art" aria-hidden="true">
+        <svg class="hero-sun" viewBox="0 0 40 40">
+          <path
+            d="M20 2.5l3 6.2 6.6-2.4-1.1 6.9 6.9 1.1-4.3 5.6 4.3 5.6-6.9 1.1 1.1 6.9-6.6-2.4-3 6.2-3-6.2-6.6 2.4 1.1-6.9-6.9-1.1 4.3-5.6-4.3-5.6 6.9-1.1-1.1-6.9 6.6 2.4z"
+            fill="var(--sole)"
+            stroke="var(--ink)"
+            stroke-width=".5"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <div class="hero-book hero-book--back"><BookCover book={paura} eager /></div>
+        <div class="hero-book hero-book--front"><BookCover book={amore} eager /></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="emozioni-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="emozioni-title">Le emozioni sono tutte importanti</h2>
+        <p>Anche quelle che fanno un po' di rumore. Ognuna ha qualcosa da dire, e si può ascoltare insieme.</p>
+      </div>
+      <ul class="emotions">
+        {emotions.map((e) => {
+          const book = e.bookSlug ? books.find((b) => b.slug === e.bookSlug) : undefined;
+          return (
+            <li class:list={['emotion', book ? 'emotion--link' : 'emotion--soon']} style={`--tone: var(--${e.tone})`}>
+              <h3><span class="swatch" aria-hidden="true"></span>{e.name}</h3>
+              <p>{e.text}</p>
+              {book ? (
+                <a class="text-link emotion-cta" href={link(bookPath(book.slug))} data-track="cta_book_page" data-track-label={`emotion-${book.slug}`}>
+                  Leggi {book.title}
+                </a>
+              ) : (
+                <p class="small emotion-soon">
+                  Non ha ancora un libro. La trovi nella{' '}
+                  <a href="#carte" data-track="cta_lead_magnet" data-track-label={`emotion-${e.name.toLowerCase()}`}>
+                    carta {emotionCards.findIndex((c) => c.emotion === e.name) + 1} delle carte gratuite
+                  </a>.
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="momento-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="momento-title">Una storia, un'emozione, un momento insieme</h2>
+        <p>Ogni volume è pensato per un tempo condiviso, breve e possibile anche nelle sere più piene.</p>
+      </div>
+      <ol class="steps">
+        {steps.map((s, i) => (
+          <li class="step">
+            <span class="step-num" aria-hidden="true">{i + 1}</span>
+            <span class="step-icon"><Icon name={s.icon} size={26} /></span>
+            <h3>{s.title}</h3>
+            <p class="muted">{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="libri-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="libri-title">I primi due volumi, già disponibili</h2>
+        <p>La collana {site.seriesName} conta dieci favole. Puoi cominciare da qui, in qualsiasi ordine.</p>
+      </div>
+      <div class="books">
+        {books.map((book) => <BookCard book={book} />)}
+      </div>
+      <p class="more"><a class="text-link" href={link('/collana')}>Guarda tutti i dieci volumi della collana</a></p>
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="autrice-title">
+    <div class="wrap author">
+      <Placeholder
+        class="author-photo"
+        label="Foto dell'autrice da sostituire"
+        alt={`Ritratto di ${site.author.name}, autrice di ${site.brand}`}
+        src={site.author.photo}
+        tone="cipria"
+        ratio="4 / 5"
+      />
+      <div class="measure">
+        <h2 id="autrice-title">Storie nate in famiglia</h2>
+        <p>
+          {site.author.shortName} ha cominciato a scrivere quando è diventata mamma. Le storie che inventava per
+          Maria Sole avevano il sapore di quelle che le raccontava sua nonna: semplici, piene di immagini, capaci di
+          far sentire al sicuro.
+        </p>
+        <p>Da quelle sere è nata Sole, e con lei l'idea di una favola per ogni emozione.</p>
+        <a class="text-link" href={link('/antonella')}>Leggi la storia di {site.author.shortName}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Risorsa gratuita">
+    <div class="wrap">
+      <LeadMagnet source="home" />
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="risorse-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="risorse-title">Piccoli strumenti per genitori</h2>
+        <p>Idee brevi e concrete da leggere anche se non hai ancora un libro della collana.</p>
+      </div>
+      <div class="articles">
+        {articles.map((a) => <ArticleCard article={a} />)}
+      </div>
+      <p class="more"><a class="text-link" href={link('/risorse')}>Vai a tutte le risorse per genitori</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: clamp(2rem, 6vw, 5rem) clamp(3rem, 7vw, 6rem);
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.1rem, 1.3rem + 3.6vw, 4rem);
+    line-height: 1.08;
+    max-width: 15ch;
+  }
+
+  .hero .lede {
+    max-width: 34rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: 2rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+  }
+
+  .trust strong {
+    color: var(--ink);
+  }
+
+  .hero-art {
+    position: relative;
+    aspect-ratio: 1;
+    max-width: 30rem;
+    width: 100%;
+    justify-self: center;
+  }
+
+  .hero-sun {
+    position: absolute;
+    top: -16%;
+    left: 6%;
+    width: 88%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-sun {
+      animation: rise 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+    @keyframes rise {
+      from {
+        transform: translateY(18%) rotate(-25deg);
+        opacity: 0;
+      }
+    }
+  }
+
+  .hero-book {
+    position: absolute;
+    width: 54%;
+  }
+
+  .hero-book--back {
+    right: 4%;
+    top: 22%;
+    transform: rotate(7deg);
+  }
+
+  .hero-book--front {
+    left: 4%;
+    top: 14%;
+    transform: rotate(-5deg);
+  }
+
+  /* Emozioni */
+  .emotions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .emotion {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.4rem 1.3rem;
+    border-radius: var(--radius-blob);
+    background-color: var(--tone);
+    background-image: var(--paper-grain);
+  }
+
+  .emotion h3 {
+    font-size: var(--step-2);
+    margin-bottom: 0.4rem;
+  }
+
+  .emotion p {
+    margin-bottom: 1rem;
+  }
+
+  .emotion-cta,
+  .emotion-soon {
+    margin: auto 0 0;
+  }
+
+  .emotion-cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .emotion--link {
+    border: 2px solid var(--ink);
+  }
+
+  .emotion--link:has(a:focus-visible) {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .emotion--link a:focus-visible {
+    outline: none;
+  }
+
+  .emotion h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .swatch {
+    display: none;
+    flex: none;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: var(--tone);
+    border: 1.5px solid var(--ink);
+  }
+
+  /* Le emozioni senza libro restano informative ma un passo indietro rispetto ai volumi disponibili */
+  .emotion--soon {
+    background-color: rgb(255 255 255 / 0.6);
+    border: 1.5px dashed rgb(46 53 80 / 0.35);
+  }
+
+  .emotion--soon .swatch {
+    display: inline-block;
+  }
+
+  .emotion--soon h3 {
+    font-size: var(--step-1);
+  }
+
+  .emotion-soon {
+    color: var(--ink);
+  }
+
+  .emotion-soon a {
+    font-weight: 700;
+    text-decoration-color: var(--sole-deep);
+    text-decoration-thickness: 0.12em;
+    padding-block: 0.6rem;
+  }
+
+  /* Passi */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: none;
+  }
+
+  .step {
+    position: relative;
+    padding-top: 0.5rem;
+  }
+
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 2.1rem;
+    left: 4.5rem;
+    right: -1.5rem;
+    border-top: 2px dashed var(--sole-deep);
+  }
+
+  .step-num {
+    position: absolute;
+    top: -0.2rem;
+    left: 2.2rem;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .step-icon {
+    display: grid;
+    place-items: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    background: var(--sole);
+    border: 2px solid var(--ink);
+  }
+
+  /* Libri */
+  .books {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .more {
+    margin: 2rem 0 0;
+  }
+
+  /* Autrice */
+  .author {
+    display: grid;
+    grid-template-columns: minmax(12rem, 22rem) 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  /* Articoli */
+  .articles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 60rem) {
+    .emotions {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .books {
+      grid-template-columns: 1fr;
+    }
+    .articles {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero-art {
+      max-width: 22rem;
+    }
+    .steps {
+      grid-template-columns: 1fr;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 3.4rem 1fr;
+      column-gap: 1.1rem;
+    }
+    .step-icon {
+      grid-row: span 2;
+      margin: 0;
+    }
+    .step h3 {
+      margin: 0.6rem 0 0.3rem;
+    }
+    .step:not(:last-child)::after {
+      top: 4.4rem;
+      bottom: -1.2rem;
+      left: 1.7rem;
+      right: auto;
+      border-top: 0;
+      border-left: 2px dashed var(--sole-deep);
+    }
+    .step-num {
+      left: 2.2rem;
+    }
+    .author {
+      grid-template-columns: 1fr;
+    }
+    .author :global(.author-photo) {
+      max-width: 16rem;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .emotions {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

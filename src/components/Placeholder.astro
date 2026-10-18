@@ -1,0 +1,73 @@
+---
+import { link } from '../lib/paths';
+/**
+ * Segnaposto editoriale per immagini non ancora disponibili (tavole interne, foto).
+ * Passa `src` quando l'immagine definitiva è pronta: il componente diventa un <img> lazy.
+ */
+interface Props {
+  label: string;
+  alt: string;
+  src?: string | null;
+  tone?: 'cipria' | 'pesca' | 'sole' | 'polvere' | 'salvia';
+  ratio?: string;
+  eager?: boolean;
+  class?: string;
+}
+
+const { label, alt, src, tone = 'pesca', ratio = '4 / 3', eager = false, class: className } = Astro.props;
+---
+
+{src ? (
+  <img class:list={['ph-img', className]} src={link(src)} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" style={`aspect-ratio:${ratio}`} />
+) : (
+  <div class:list={['ph', className]} role="img" aria-label={`${alt} (immagine provvisoria)`} style={`aspect-ratio:${ratio}; --ph-tone: var(--${tone})`}>
+    <svg viewBox="0 0 120 80" aria-hidden="true" focusable="false" class="ph-art">
+      <path d="M8 70c14-20 26-28 40-24s22 10 36 0 22-8 28-2v26H8Z" fill="currentColor" opacity=".18" />
+      <circle cx="88" cy="24" r="10" fill="currentColor" opacity=".22" />
+      <path d="M22 58c6-12 14-18 22-16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".35" />
+    </svg>
+    <span class="ph-label">{label}</span>
+  </div>
+)}
+
+<style>
+  .ph,
+  .ph-img {
+    width: 100%;
+    border-radius: var(--radius-blob);
+  }
+
+  .ph-img {
+    object-fit: cover;
+    height: auto;
+  }
+
+  .ph {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+    overflow: hidden;
+    color: var(--ink);
+    background-color: var(--ph-tone);
+    background-image: var(--paper-grain);
+    border: 2px dashed rgb(46 53 80 / 0.35);
+  }
+
+  .ph-art {
+    position: absolute;
+    inset: 12% 10% 22%;
+    width: 80%;
+    height: 66%;
+  }
+
+  .ph-label {
+    position: relative;
+    font-size: var(--step--1);
+    font-weight: 700;
+    line-height: 1.35;
+    background: rgb(255 249 241 / 0.85);
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.6rem;
+  }
+</style>

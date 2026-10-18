@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LeadMagnet from '../components/LeadMagnet.astro';
+import { site } from '../config/site';
+import { link } from '../lib/paths';
+---
+
+<BaseLayout
+  title="Le carte delle emozioni di Sole — risorsa gratuita e newsletter"
+  description="Ricevi gratis Le carte delle emozioni di Sole: 10 domande e attività da fare insieme ai bambini dai 3 ai 9 anni, in un PDF da stampare. E le novità della collana."
+  mobileCta={false}
+>
+  <section class="section page">
+    <div class="wrap">
+      <LeadMagnet
+        source="newsletter"
+        id="modulo"
+        headingLevel="h1"
+        intro="Lasciaci la tua email: ti mandiamo subito le carte e, ogni tanto, una nuova storia, un'idea da provare a casa o la notizia di un nuovo volume della collana."
+      />
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="come-title">
+    <div class="wrap faq">
+      <h2 id="come-title">Come funziona</h2>
+      <dl>
+        <div>
+          <dt>Cosa ricevo?</dt>
+          <dd>Un {site.leadMagnet.format} con dieci carte: per ogni emozione una domanda e un'attività breve da fare insieme.</dd>
+        </div>
+        <div>
+          <dt>Quante email arrivano?</dt>
+          <dd>Poche e con calma: storie, idee da provare a casa e l'uscita dei nuovi volumi della collana.</dd>
+        </div>
+        <div>
+          <dt>Posso cancellarmi?</dt>
+          <dd>Sì, in qualsiasi momento, con il link presente in fondo a ogni email.</dd>
+        </div>
+        <div>
+          <dt>Come usate i miei dati?</dt>
+          <dd>Solo per inviarti le carte e la newsletter. I dettagli sono nell'<a href={link(site.legal.privacyUrl)}>informativa privacy</a>.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: clamp(2rem, 5vw, 4rem);
+  }
+
+  .faq dl {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 3rem;
+    margin: 0;
+    max-width: 56rem;
+  }
+
+  dt {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    margin-bottom: 0.3rem;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 40rem) {
+    .faq dl {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

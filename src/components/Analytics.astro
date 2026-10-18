@@ -1,0 +1,18 @@
+---
+/**
+ * Punto unico per Search Console e analytics.
+ * In preview tutti i valori in `site.analytics` sono vuoti: non viene caricato alcuno script.
+ *
+ * - Search Console: incolla il codice di verifica in `site.analytics.googleSiteVerification`.
+ * - Plausible (consigliato, senza cookie): imposta `site.analytics.plausibleDomain`.
+ * - GA4: imposta `site.analytics.ga4MeasurementId` SOLO dopo aver aggiunto un banner
+ *   di consenso cookie conforme; lo script va caricato dopo il consenso.
+ */
+import { site } from '../config/site';
+
+const { googleSiteVerification, plausibleDomain } = site.analytics;
+---
+
+{googleSiteVerification && <meta name="google-site-verification" content={googleSiteVerification} />}
+{plausibleDomain && <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.js"></script>}
+<!-- GA4: inserire qui lo snippet gtag condizionato al consenso cookie (vedi README). -->

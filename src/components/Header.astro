@@ -1,0 +1,215 @@
+---
+import { site } from '../config/site';
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+import { cleanPath, link } from '../lib/paths';
+
+const path = cleanPath(Astro.url.pathname);
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/'));
+const isBookPage = path.startsWith('/libri/');
+const instagram = site.social.find((s) => s.id === 'instagram');
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href={link('/')} aria-label={`${site.brand}, torna alla home`}>
+      <Logo />
+    </a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="when-closed"><Icon name="menu" /></span>
+      <span class="when-open"><Icon name="close" /></span>
+      <span class="menu-label">Menu</span>
+    </button>
+
+    <nav id="site-nav" class="nav" aria-label="Principale">
+      <ul>
+        {site.nav.map((item) => (
+          <li>
+            <a
+              href={link(item.href)}
+              aria-current={isCurrent(item.href) || (item.href === '/collana' && isBookPage) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {instagram?.url && (
+        <a class="social" href={instagram.url} target="_blank" rel="noopener noreferrer" data-track="social_click" data-track-label="instagram-header">
+          <Icon name="instagram" />
+          <span class="social-text">{instagram.handle}</span>
+          <span class="visually-hidden">su Instagram (si apre in una nuova scheda)</span>
+        </a>
+      )}
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const nav = document.getElementById('site-nav');
+  if (toggle && nav) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      nav.classList.toggle('is-open', open);
+    };
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(255 249 241 / 0.94);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.25rem;
+  }
+
+  .brand {
+    text-decoration: none;
+    flex: none;
+  }
+
+  .nav ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .nav ul a:hover {
+    background: rgb(46 53 80 / 0.06);
+  }
+
+  .nav a[aria-current='page'] {
+    background: var(--cipria);
+  }
+
+  .social {
+    border: 1.5px solid var(--line);
+  }
+
+  .social-text {
+    font-size: 0.92rem;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  @media (max-width: 64rem) {
+    .social-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 54rem) {
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-height: 2.9rem;
+      padding: 0.4rem 1rem 0.4rem 0.8rem;
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .menu-toggle .when-open,
+    .menu-toggle[aria-expanded='true'] .when-closed {
+      display: none;
+    }
+
+    .menu-toggle[aria-expanded='true'] .when-open {
+      display: inline;
+    }
+
+    /* Senza JS il menu resta visibile sotto la barra */
+    .nav {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+      padding: 1rem var(--gutter) 1.5rem;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 18px 30px -24px rgb(46 53 80 / 0.5);
+    }
+
+    :global(.js) .nav:not(.is-open) {
+      display: none;
+    }
+
+    .nav ul {
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .nav ul a {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-size: 1.1rem;
+    }
+
+    .social {
+      align-self: flex-start;
+    }
+
+    .social-text {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 54rem) {
+    :global(html:not(.js)) .menu-toggle {
+      display: none;
+    }
+    :global(html:not(.js)) .nav {
+      position: static;
+      box-shadow: none;
+    }
+  }
+</style>

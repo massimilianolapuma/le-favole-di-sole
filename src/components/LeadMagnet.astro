@@ -1,0 +1,86 @@
+---
+/** Blocco risorsa gratuita + form. Usato in Home e nella pagina Newsletter. */
+import { site } from '../config/site';
+import CardsPreview from './CardsPreview.astro';
+import NewsletterForm from './NewsletterForm.astro';
+
+interface Props {
+  source: string;
+  id?: string;
+  /** Livello del titolo: h2 nelle sezioni, h1 nella pagina dedicata. */
+  headingLevel?: 'h1' | 'h2';
+  intro?: string;
+}
+
+const { source, id = 'carte', headingLevel = 'h2', intro } = Astro.props;
+const Heading = headingLevel;
+---
+
+<div class="lead" id={id}>
+  <div class="lead-preview">
+    <CardsPreview />
+  </div>
+  <div class="lead-body" data-hides-mobile-bar>
+    <Heading class="lead-title">{site.leadMagnet.title}</Heading>
+    <p class="lead-sub">{site.leadMagnet.subtitle}, gratis in un {site.leadMagnet.format}.</p>
+    {intro && <p class="muted">{intro}</p>}
+    <ul class="lead-list">
+      <li>Dieci carte, una per emozione, con una domanda e un'attività.</li>
+      <li>Pensate per bambini dai 3 ai 9 anni, da usare con un adulto.</li>
+      <li>Ogni tanto, una storia o un'idea nuova via email. Niente spam.</li>
+    </ul>
+    <NewsletterForm source={source} id={`${id}-form`} />
+  </div>
+</div>
+
+<style>
+  .lead {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+
+  .lead-title {
+    font-size: var(--step-3);
+    margin-bottom: 0.3em;
+  }
+
+  .lead-sub {
+    font-size: var(--step-1);
+    line-height: 1.4;
+  }
+
+  .lead-list {
+    margin: 0 0 1.75rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lead-list li {
+    position: relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .lead-list li::before {
+    content: '';
+    position: absolute;
+    left: 0.15rem;
+    top: 0.55em;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--sole);
+    border: 1.5px solid var(--ink);
+  }
+
+  @media (max-width: 52rem) {
+    .lead {
+      grid-template-columns: 1fr;
+    }
+    .lead-preview {
+      order: 2;
+    }
+  }
+</style>

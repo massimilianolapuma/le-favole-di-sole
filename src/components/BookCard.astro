@@ -1,0 +1,95 @@
+---
+import { bookPath, site, type Book } from '../config/site';
+import BookCover from './BookCover.astro';
+import { link } from '../lib/paths';
+
+interface Props {
+  book: Book;
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { book, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+---
+
+<article class:list={['book-card', `book-card--${book.tone}`]}>
+  <div class="cover-wrap">
+    <BookCover book={book} />
+  </div>
+  <div class="body">
+    <p class="meta">
+      <span class="tag">Volume {book.volume}</span>
+      <span class="tag">{book.ageRange}</span>
+      <span class="tag">Emozione: {book.emotion}</span>
+    </p>
+    <Heading class="title">{book.title}</Heading>
+    <p class="muted">{book.oneLiner}</p>
+    <a class="btn btn--secondary stretched" href={link(bookPath(book.slug))} data-track="cta_book_page" data-track-label={book.slug}>
+      Scopri il libro<span class="visually-hidden">: {book.title}, {site.seriesName} volume {book.volume}</span>
+    </a>
+  </div>
+</article>
+
+<style>
+  .book-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(8rem, 13rem) 1fr;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: var(--radius-blob);
+    background: #fff;
+    border: 1.5px solid var(--line);
+  }
+
+  .book-card--amore {
+    background: linear-gradient(160deg, #fff 55%, rgb(243 207 201 / 0.45));
+  }
+
+  .book-card--paura {
+    background: linear-gradient(160deg, #fff 55%, rgb(179 203 224 / 0.5));
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .title {
+    font-size: var(--step-2);
+    margin-bottom: 0.4rem;
+  }
+
+  .stretched::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .book-card:has(.stretched:hover) .btn {
+    background: rgb(46 53 80 / 0.06);
+  }
+
+  .book-card:has(.stretched:focus-visible) {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .stretched:focus-visible {
+    outline: none;
+  }
+
+  @media (max-width: 30rem) {
+    .book-card {
+      grid-template-columns: 1fr;
+      padding: 1.25rem;
+    }
+    .cover-wrap {
+      width: 62%;
+    }
+  }
+</style>

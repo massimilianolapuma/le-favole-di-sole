@@ -1,0 +1,121 @@
+---
+/**
+ * Copertina del libro. Se `book.coverImage` è valorizzato mostra l'immagine definitiva,
+ * altrimenti un placeholder illustrato ed etichettato.
+ */
+import type { Book } from '../config/site';
+import { site } from '../config/site';
+import { link } from '../lib/paths';
+
+interface Props {
+  book: Book;
+  eager?: boolean;
+  class?: string;
+}
+
+const { book, eager = false, class: className } = Astro.props;
+const alt = `Copertina di ${book.title}, volume ${book.volume} della collana ${site.seriesName}`;
+---
+
+{book.coverImage ? (
+  <img
+    class:list={['cover-img', className]}
+    src={link(book.coverImage)}
+    alt={alt}
+    width="800"
+    height="1000"
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+) : (
+  <div class:list={['cover', `cover--${book.tone}`, className]} role="img" aria-label={`${alt} (copertina provvisoria)`}>
+    <span class="cover-series">{site.seriesName} · {book.volume}</span>
+    <svg class="cover-art" viewBox="0 0 200 160" aria-hidden="true" focusable="false">
+      {book.tone === 'amore' ? (
+        <g>
+          <circle cx="100" cy="88" r="58" fill="var(--sole)" opacity=".55" />
+          <path d="M100 128c-34-22-52-40-52-62 0-14 11-25 25-25 11 0 21 7 27 17 6-10 16-17 27-17 14 0 25 11 25 25 0 22-18 40-52 62Z" fill="#e98f93" stroke="var(--ink)" stroke-width="2.5" />
+          <path d="M70 62q6-10 16-8" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8" />
+        </g>
+      ) : (
+        <g>
+          <circle cx="112" cy="72" r="42" fill="var(--sole)" opacity=".9" />
+          <circle cx="132" cy="60" r="38" fill="var(--polvere-deep)" />
+          <g fill="var(--sole)">
+            <path d="M40 40l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
+            <path d="M160 112l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
+            <circle cx="62" cy="96" r="2.5" />
+            <circle cx="150" cy="24" r="2" />
+          </g>
+          <path d="M18 160c20-30 44-38 70-34s48 6 72-8 30-6 40 0v42Z" fill="#2c4566" />
+        </g>
+      )}
+    </svg>
+    <span class="cover-title">{book.title}</span>
+    <span class="cover-note">Copertina provvisoria · da sostituire</span>
+  </div>
+)}
+
+<style>
+  .cover,
+  .cover-img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: 0.5rem 1.1rem 1.1rem 0.5rem;
+    box-shadow:
+      -6px 0 0 -2px rgb(46 53 80 / 0.25) inset,
+      0 18px 30px -18px rgb(46 53 80 / 0.55);
+  }
+
+  .cover-img {
+    object-fit: cover;
+    height: auto;
+  }
+
+  .cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    padding: 9% 8% 7%;
+    background-image: var(--paper-grain);
+    text-align: center;
+    container-type: inline-size;
+  }
+
+  .cover--amore {
+    background-color: var(--cipria);
+  }
+
+  .cover--paura {
+    background-color: var(--polvere);
+  }
+
+  .cover-series {
+    font-size: max(0.7rem, 6cqi);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .cover-art {
+    width: 92%;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .cover-title {
+    font-family: var(--font-display);
+    font-size: max(1rem, 11.5cqi);
+    line-height: 1.05;
+  }
+
+  .cover-note {
+    font-size: max(0.65rem, 5cqi);
+    color: var(--ink);
+    padding: 0.15em 0.7em;
+    border: 1px dashed currentColor;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.55);
+  }
+</style>

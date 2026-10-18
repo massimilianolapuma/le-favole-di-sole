@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { link } from '../lib/paths';
+---
+
+<BaseLayout title="Pagina non trovata" description="La pagina che cercavi non esiste o è stata spostata." noindex>
+  <section class="section">
+    <div class="wrap measure">
+      <h1>Questa pagina non c'è</h1>
+      <p class="lede">Forse il link è cambiato. Puoi ripartire dalla collana o dalla home.</p>
+      <div class="btn-row btn-row--stack">
+        <a class="btn btn--primary" href={link('/collana')}>Scopri la collana</a>
+        <a class="btn btn--secondary" href={link('/')}>Torna alla home</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

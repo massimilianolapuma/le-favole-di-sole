@@ -1,0 +1,166 @@
+---
+import { site } from '../config/site';
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+import { link } from '../lib/paths';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap grid">
+    <div class="about">
+      <Logo />
+      <p class="muted">{site.tagline}</p>
+      <p class="small muted">
+        Le Favole di Sole non vende direttamente: i libri della collana si acquistano su Amazon.it.
+      </p>
+    </div>
+
+    <nav aria-label="Pagine del sito">
+      <h2 class="foot-title">Il sito</h2>
+      <ul>
+        {site.nav.map((item) => <li><a href={link(item.href)}>{item.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="foot-title">Seguici e scrivici</h2>
+      <ul class="contacts">
+        {site.social.map((s) => (
+          <li>
+            {s.url ? (
+              <a href={s.url} target="_blank" rel="noopener noreferrer" data-track="social_click" data-track-label={`${s.id}-footer`}>
+                <Icon name={s.id} />
+                <span>{s.label} <span class="muted">{s.handle}</span></span>
+                <span class="visually-hidden">(si apre in una nuova scheda)</span>
+              </a>
+            ) : (
+              <span class="pending">
+                <Icon name={s.id} />
+                <span>{s.label} <span class="muted">— profilo in arrivo</span></span>
+              </span>
+            )}
+          </li>
+        ))}
+        <li>
+          {site.email ? (
+            <a href={`mailto:${site.email}`}>
+              <Icon name="mail" />
+              <span>{site.email}</span>
+            </a>
+          ) : (
+            <span class="pending">
+              <Icon name="mail" />
+              <span>Email <span class="muted">— indirizzo in arrivo</span></span>
+            </span>
+          )}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="wrap legal small">
+    <p>© {year} {site.brand} · {site.author.name}</p>
+    <ul>
+      <li><a href={link(site.legal.privacyUrl)}>Privacy</a></li>
+      <li><a href={link(site.legal.cookieUrl)}>Cookie</a></li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 0;
+    padding-block: 3.5rem 2rem;
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .site-footer :global(.logo-text) {
+    color: var(--paper);
+  }
+
+  .site-footer .muted {
+    color: #c9cbd8;
+  }
+
+  .grid {
+    display: grid;
+    gap: 2.5rem;
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+  }
+
+  .about p {
+    margin-top: 1rem;
+    max-width: 22rem;
+  }
+
+  .foot-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.9rem;
+    color: var(--sole);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--paper);
+  }
+
+  .contacts a,
+  .contacts .pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+  }
+
+  .contacts a {
+    text-decoration: none;
+  }
+
+  .contacts a:hover span:first-of-type {
+    text-decoration: underline;
+  }
+
+  .legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.25rem 2rem;
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(255 255 255 / 0.18);
+    color: #c9cbd8;
+  }
+
+  .legal p {
+    margin: 0;
+  }
+
+  .legal ul {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .site-footer :focus-visible {
+    outline-color: var(--sole);
+  }
+
+  @media (max-width: 48rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
